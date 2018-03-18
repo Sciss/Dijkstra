@@ -181,9 +181,9 @@ object Demo extends GraphBase[String] {
                       GraphUtil.exportGraphImage(graph, (unit * 2).asInstanceOf[Int] + xoffset, (unit * 2).asInstanceOf[Int] + yoffset, fn,
                         GraphUtil.SDF_NICE.format(new Date()), info + sb.toString, xoffset, yoffset, zoom, nodes, logo = null /* imgFn */)
                       println("""Exported graph image: '%s'""".format(fn))
-                    case ShortestRouteDoesNotExist() => println("no shortest route")
+                    case ShortestRouteDoesNotExist()          => println("no shortest route")
                     case ShortestRouteInvalidSourceOrTarget() => println("invalid source/target")
-                    case ShortestRouteError() => println("shortest route error")
+                    case ShortestRouteError()                 => println("shortest route error")
                   }
                 case _ => println("should never get here...")
               }

@@ -271,7 +271,7 @@ object GraphUtil {
    * @return Option[GeneratedGraph(Graph)] for success; Option[GraphGeneratedFailed(msg)] otherwise
    *
    */
-  def polygonGraph(slices: Int, radius: Double, spiky: Boolean = true): Option[GraphCase] = {
+  def polygonGraph(slices: Int, radius: Double, spiky: Boolean = true): Option[GraphCase[String]] = {
     try {
       val slice = (2 * scala.math.Pi) / (1.0 * slices)
       val nodes: mutable.HashMap[String, Node[String]] = mutable.HashMap.empty[String, Node[String]]

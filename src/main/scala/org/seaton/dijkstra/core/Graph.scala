@@ -37,16 +37,16 @@ trait GraphBase[S >: Null <: AnyRef] {
   /**
    * Calculates the shortest path given a graph, source and target nodes, and neighbor and distance functions.
    *
-   * @param net graph represented by nodes with connected nodes and distances
-   * @param source source node id in graph
-   * @param target target/destination node id in graph
+   * @param net       graph represented by nodes with connected nodes and distances
+   * @param source    source node id in graph
+   * @param target    target/destination node id in graph
    * @param neighbors function to determine neighbors to a particular node
    *
    * @return `Option[List[String]]` traversable list of node ids in graph representing the shortest path
    */
   def shortestPath(net: Map[S, Map[S, Double]], source: S, target: S,
     neighbors: ((Map[S, Map[S, Double]], S) => Option[List[S]]) = neighbors,
-    distance: ((Map[S, Map[S, Double]], S, S) => Option[Double]) = distance): Option[GraphCase] = {
+    distance: ((Map[S, Map[S, Double]], S, S) => Option[Double]) = distance): Option[GraphCase[S]] = {
     try {
       if (source.equals(target)) {
         Some(ShortestRoute(List(target), 0.0))
@@ -76,7 +76,8 @@ trait GraphBase[S >: Null <: AnyRef] {
    *
    * @return `Option[List[String]]` traversable list of node ids in graph representing the shortest path
    */
-  def shortestPath(graph: Graph[S], source: S, target: S): Option[GraphCase] = shortestPath(graph.net, source, target)
+  def shortestPath(graph: Graph[S], source: S, target: S): Option[GraphCase[S]] =
+    shortestPath(graph.net, source, target)
 
   /**
    * First-order function to determine connected nodes to given node in graph.
@@ -112,13 +113,14 @@ trait GraphBase[S >: Null <: AnyRef] {
    *
    * @return Tuple(minimum distance node id, minimum distance, updated relative distances, update previous distances)
    */
-  private def takeMinNode(rdists: SortedMap[Double, Map[S, S]], preds: Map[S, (S, Double)]): Option[(S, Double, SortedMap[Double, Map[S, S]], Map[S, (S, Double)])] = {
+  private def takeMinNode(rdists: SortedMap[Double, Map[S, S]],
+                          preds: Map[S, (S, Double)]): Option[(S, Double, SortedMap[Double, Map[S, S]], Map[S, (S, Double)])] = {
     try {
-      val dist = rdists.firstKey
-      val minNodes = rdists(dist)
-      val minNode = minNodes.head._1
-      val prevNid = minNodes.head._2
-      val otherNodes = minNodes.tail
+      val dist        = rdists.firstKey
+      val minNodes    = rdists(dist)
+      val minNode     = minNodes.head._1
+      val prevNid     = minNodes.head._2
+      val otherNodes  = minNodes.tail
       Some((minNode, dist, if (otherNodes.isEmpty) rdists - dist else rdists + (dist -> otherNodes), preds + (minNode -> (prevNid, dist))))
     } catch {
       case NonFatal(e) => e.printStackTrace(); None
@@ -128,13 +130,13 @@ trait GraphBase[S >: Null <: AnyRef] {
   /**
    * Adds relative distances.
    *
-   * @param rdists sorted map with distance as key and edges corresponding to distance.
-   * @param nid node id
-   * @param prevNid previous node id
-   * @param dist distance
-   * @param prevDist previous distance
+   * @param rdists    sorted map with distance as key and edges corresponding to distance.
+   * @param nid       node id
+   * @param prevNid   previous node id
+   * @param dist      distance
+   * @param prevDist  previous distance
    *
-   * @return Option[] with updated relative distance sorted map
+   * @return `Option[]` with updated relative distance sorted map
    */
   private def addRdist(rdists: SortedMap[Double, Map[S, S]], nid: S, prevNid: S,
     dist: Double, prevDist: Double = -1.0): Option[SortedMap[Double, Map[S, S]]] = {
@@ -283,12 +285,12 @@ trait GraphBase[S >: Null <: AnyRef] {
    * @return `Option[]` update previous distances
    */
   private def short(net: Map[S, Map[S, Double]], source: S, target: S,
-    neighbors: ((Map[S, Map[S, Double]], S) => Option[List[S]]),
-    distance: ((Map[S, Map[S, Double]], S, S) => Option[Double]),
-    rdists: SortedMap[Double, Map[S, S]],
-    minNode: S,
-    preds: Map[S, (S, Double)],
-    dist: Double): Option[Map[S, (S, Double)]] = {
+      neighbors : ((Map[S, Map[S, Double]], S)    => Option[List[S]]),
+      distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double]),
+      rdists    : SortedMap[Double, Map[S, S]],
+      minNode   : S,
+      preds     : Map[S, (S, Double)],
+      dist      : Double): Option[Map[S, (S, Double)]] = {
     try {
       if (rdists.isEmpty) {
         Some(preds)
@@ -297,9 +299,11 @@ trait GraphBase[S >: Null <: AnyRef] {
           case Some(take) =>
             updateRdists(take._3, take._4, net, take._1, take._2, neighbors, distance) match {
               case Some(update) => short(net, source, target, neighbors, distance, update._1, take._1, update._2, take._2)
-              case _ => throw new RuntimeException("error updated rel distances: " + take._3 + ":" + take._4 + ":" + net + ":" + take._1 + ":" + take._2)
+              case _ =>
+                throw new RuntimeException("error updated rel distances: " + take._3 + ":" + take._4 + ":" + net + ":" + take._1 + ":" + take._2)
             }
-          case _ => throw new RuntimeException("error generating takeMinNode: " + rdists + ":" + preds)
+          case _ =>
+            throw new RuntimeException("error generating takeMinNode: " + rdists + ":" + preds)
         }
       }
     } catch {
@@ -476,7 +480,7 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    *
    * @return Option[ShortestRoute(List[Node])] for success, other graph cases for failed calculation
    */
-  def shortestPath(source: S, target: S): Option[GraphCase] = {
+  def shortestPath(source: S, target: S): Option[GraphCase[S]] = {
     try {
       if (source == target) {
         Some(ShortestRoute(List(source), 0.0))
