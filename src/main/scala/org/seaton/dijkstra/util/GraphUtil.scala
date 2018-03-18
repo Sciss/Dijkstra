@@ -7,7 +7,6 @@ import java.lang.Double
 import java.text.SimpleDateFormat
 
 import javax.imageio.ImageIO
-import org.seaton.dijkstra.cases._
 import org.seaton.dijkstra.core._
 
 import scala.collection.mutable
@@ -265,7 +264,7 @@ object GraphUtil {
    * @return Option[GeneratedGraph(Graph)] for success; Option[GraphGeneratedFailed(msg)] otherwise
    *
    */
-  def polygonGraph(slices: Int, radius: Double, spiky: Boolean = true): GraphCase[String] = {
+  def polygonGraph(slices: Int, radius: Double, spiky: Boolean = true): Graph[String] = {
     val slice = (2 * math.Pi) / (1.0 * slices)
     val nodes: mutable.HashMap[String, Node[String]] = mutable.HashMap.empty[String, Node[String]]
     val edges = new ListBuffer[Edge[String]]()
@@ -292,7 +291,7 @@ object GraphUtil {
         edges += Edge(String.valueOf(slices - 1), "0")
       }
     })
-    GeneratedGraph(Graph(nodes.toMap, edges.toList))
+    Graph(nodes.toMap, edges.toList)
   }
 
   /**

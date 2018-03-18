@@ -13,10 +13,7 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
 
   val triGraph: Graph[String] = Graph(triNodes, goodTriEdges)
 
-  val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, spiky = false) match {
-    case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
-    case _ => null // anything else is an error
-  }
+  val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, spiky = false)
 
   val wedges = new ListBuffer[Edge[String]]()
   poly5graph.edges foreach (edge => {
@@ -24,10 +21,7 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
   })
   val disjoint5graph: Graph[String] = Graph(poly5graph.nodes, wedges.toList)
 
-  val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, spiky = true) match {
-    case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
-    case _ => null // anything else is an error
-  }
+  val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, spiky = true)
 
   "functional: graph shortest route should fail with invalid target node id" in {
     shortestPath(triGraph, "a", "zzz") must beEqualTo(ShortestRouteInvalidSourceOrTarget())

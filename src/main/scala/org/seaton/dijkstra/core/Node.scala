@@ -7,7 +7,7 @@ package org.seaton.dijkstra.core
  * @param x X-coordinate of node
  * @param y Y-coordinate of node
  */
-class Node[S >: Null <: AnyRef](val id: S, val x: Double, val y: Double) {
+class Node[S](val id: S, val x: Double, val y: Double) {
   /**
    * Lazy string representation of Node.
    */
@@ -30,5 +30,5 @@ object Node {
    * @param x X-coordinate of node
    * @param y Y-coordinate of node
    */
-  def apply[S >: Null <: AnyRef](id: S, x: Double, y: Double) = new Node(id, x, y)
+  def apply[S](id: S, x: Double, y: Double) = new Node(id, x, y)
 }

@@ -32,14 +32,19 @@ pomExtra := { val n = name.value
 </scm>
 <developers>
   <developer>
-    <id>bepcyc</id>
-    <name>Viacheslav Rodionov</name>
-    <url>https://github.com/bepcyc</url>
+    <id>gseaton</id>
+    <name>Greg Seaton</name>
+    <url>https://github.com/gseaton</url>
   </developer>
   <developer>
     <id>sciss</id>
     <name>Hanns Holger Rutz</name>
     <url>http://www.sciss.de</url>
+  </developer>
+  <developer>
+    <id>bepcyc</id>
+    <name>Viacheslav Rodionov</name>
+    <url>https://github.com/bepcyc</url>
   </developer>
 </developers>
 }

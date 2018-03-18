@@ -8,7 +8,7 @@ import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-trait GraphBase[S >: Null <: AnyRef] {
+trait GraphBase[S] {
   /**
    * Calculates via folding the distance traversed by a list of connected nodes.
    *
@@ -276,7 +276,7 @@ trait GraphBase[S >: Null <: AnyRef] {
  * @param nodes map of graph nodes with node id as key
  * @param edges list of graph edges
  */
-class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edge[S]]) extends GraphBase[S] {
+class Graph[S](val nodes: Map[S, Node[S]], val edges: List[Edge[S]]) extends GraphBase[S] {
 
   // determine bad edge node ids (edge node ids that don't exist in nodes map)
   private val badEdgeNodeIds = new ListBuffer[S]()
@@ -476,7 +476,7 @@ object Graph {
    *
    * @return new Graph instance
    */
-  def apply[S >: Null <: AnyRef](nodes: Map[S, Node[S]], edges: List[Edge[S]]) = new Graph[S](nodes, edges)
+  def apply[S](nodes: Map[S, Node[S]], edges: List[Edge[S]]) = new Graph[S](nodes, edges)
 
   /**
    * Represents an infinite distance while calculating distances between nodes.

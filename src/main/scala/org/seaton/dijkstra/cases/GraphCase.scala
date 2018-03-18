@@ -10,7 +10,7 @@ sealed abstract class GraphCase[+S]
 /**
   * Case class wrapping a generated graph.
   */
-case class GeneratedGraph[S >: Null <: AnyRef](graph: Graph[S]) extends GraphCase[S]
+case class GeneratedGraph[S](graph: Graph[S]) extends GraphCase[S]
 
 /**
   * Case class for an error occurring during the generation of a graph.
@@ -30,7 +30,7 @@ case class ShortestRouteInvalidSourceOrTarget() extends GraphCase[Nothing]
 /**
   * Case class wrapping the shortest route between two (2) nodes in a graph.
   */
-case class ShortestRoute[S >: Null <: AnyRef](route: List[S], dist: Double) extends GraphCase[S]
+case class ShortestRoute[S](route: List[S], dist: Double) extends GraphCase[S]
 
 /**
   * Case class for an error occurring during a shortest route calculation in a graph.

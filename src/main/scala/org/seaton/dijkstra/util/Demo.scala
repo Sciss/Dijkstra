@@ -2,7 +2,7 @@ package org.seaton.dijkstra.util
 
 import java.util.Date
 
-import org.seaton.dijkstra.cases.{GeneratedGraph, GeneratedGraphFailed, ShortestRoute, ShortestRouteDoesNotExist, ShortestRouteError, ShortestRouteInvalidSourceOrTarget}
+import org.seaton.dijkstra.cases.{ShortestRoute, ShortestRouteDoesNotExist, ShortestRouteError, ShortestRouteInvalidSourceOrTarget}
 import org.seaton.dijkstra.core.GraphBase
 
 import scala.util.control.NonFatal
@@ -156,36 +156,29 @@ object Demo extends GraphBase[String] {
       val fn = s"exported-graph-images/graph.$slices.$source.$target.${GraphUtil.SDF.format(new Date())}.jpg"
 //      val imgFn = "src/main/resources/novus-logo.jpg"
 
-      val graphCase = GraphUtil.polygonGraph(slices, unit, spikes)
-      graphCase match {
-        case generatedGraph: GeneratedGraph[String] =>
-          val graph = generatedGraph.graph
-          // graph.shortestPath(source, target) match {
-          val _graphCase = shortestPath(graph, source, target)
-          _graphCase match {
-            case shortestRoute: ShortestRoute[String] =>
-                val nodes = shortestRoute.route
-                val dist = shortestRoute.dist
-              print("Shortest route generated: ")
-              val info = """%dn;%de::""".format(graph.nodes.size, graph.edges.size)
-              val sb = new StringBuilder()
-              nodes foreach (node => {
-                print(" -> " + node)
-                if (sb.nonEmpty) sb.append("->")
-                sb.append(node)
-              })
-              println()
-              println("""Distance: %f""".format(dist))
-              GraphUtil.exportGraphImage(graph, (unit * 2).asInstanceOf[Int] + xoffset, (unit * 2).asInstanceOf[Int] + yoffset, fn,
-                GraphUtil.SDF_NICE.format(new Date()), info + sb.toString, xoffset, yoffset, zoom, nodes, logo = null /* imgFn */)
-              println("""Exported graph image: '%s'""".format(fn))
-            case ShortestRouteDoesNotExist()          => println("no shortest route")
-            case ShortestRouteInvalidSourceOrTarget() => println("invalid source/target")
-            case ShortestRouteError()                 => println("shortest route error")
-            case _                                    => println("should never get here...")
-          }
-        case GeneratedGraphFailed(msg)                => println(s"graph generation failed: $msg")
-        case _                                        => println("should never get here...")
+      val graph = GraphUtil.polygonGraph(slices, unit, spikes)
+      val _graphCase = shortestPath(graph, source, target)
+      _graphCase match {
+        case shortestRoute: ShortestRoute[String] =>
+            val nodes = shortestRoute.route
+            val dist = shortestRoute.dist
+          print("Shortest route generated: ")
+          val info = """%dn;%de::""".format(graph.nodes.size, graph.edges.size)
+          val sb = new StringBuilder()
+          nodes foreach (node => {
+            print(" -> " + node)
+            if (sb.nonEmpty) sb.append("->")
+            sb.append(node)
+          })
+          println()
+          println("""Distance: %f""".format(dist))
+          GraphUtil.exportGraphImage(graph, (unit * 2).asInstanceOf[Int] + xoffset, (unit * 2).asInstanceOf[Int] + yoffset, fn,
+            GraphUtil.SDF_NICE.format(new Date()), info + sb.toString, xoffset, yoffset, zoom, nodes, logo = null /* imgFn */)
+          println("""Exported graph image: '%s'""".format(fn))
+        case ShortestRouteDoesNotExist()          => println("no shortest route")
+        case ShortestRouteInvalidSourceOrTarget() => println("invalid source/target")
+        case ShortestRouteError()                 => println("shortest route error")
+        case _                                    => println("should never get here...")
       }
 
     } catch {
