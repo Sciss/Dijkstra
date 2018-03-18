@@ -153,7 +153,7 @@ object Demo extends GraphBase[String] {
       val yoffset = 40
       val zoom = 3.0
 
-      val fn = "exported-graph-images/graph." + slices + "." + source + "." + target + "." + GraphUtil.SDF.format(new Date()) + ".jpg"
+      val fn = s"exported-graph-images/graph.$slices.$source.$target.${GraphUtil.SDF.format(new Date())}.jpg"
 //      val imgFn = "src/main/resources/novus-logo.jpg"
 
       val graphCase = GraphUtil.polygonGraph(slices, unit, spikes)
@@ -182,9 +182,10 @@ object Demo extends GraphBase[String] {
             case ShortestRouteDoesNotExist()          => println("no shortest route")
             case ShortestRouteInvalidSourceOrTarget() => println("invalid source/target")
             case ShortestRouteError()                 => println("shortest route error")
+            case _                                    => println("should never get here...")
           }
-        case GeneratedGraphFailed(msg) => println("graph generation failed: " + msg)
-        case _ => println("should never get here...")
+        case GeneratedGraphFailed(msg)                => println(s"graph generation failed: $msg")
+        case _                                        => println("should never get here...")
       }
 
     } catch {

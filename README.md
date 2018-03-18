@@ -5,7 +5,8 @@
 
 Implementation of Dijkstra's algorithm to find the shortest (least costly) route between nodes in an undirected graph.
 Fork from [github.com/bepcyc/dijkstra](https://github.com/bepcyc/dijkstra), clean it up a bit and bringing Scala versions up to date.
-Below is the original read-me.
+The original author is Viacheslav Rodionov. All changes (C)opyright by Hanns Holger Rutz, published under the
+same license (Apache 2.0). Below is the original read-me.
 
 ## Getting Started
 

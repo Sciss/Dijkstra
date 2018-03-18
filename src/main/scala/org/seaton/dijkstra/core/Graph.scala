@@ -99,7 +99,7 @@ trait GraphBase[S >: Null <: AnyRef] {
     val minNode     = minNodes.head._1
     val prevNid     = minNodes.head._2
     val otherNodes  = minNodes.tail
-    (minNode, dist, if (otherNodes.isEmpty) rdists - dist else rdists + (dist -> otherNodes), preds + (minNode -> (prevNid, dist)))
+    (minNode, dist, if (otherNodes.isEmpty) rdists - dist else rdists + (dist -> otherNodes), preds + (minNode -> ((prevNid, dist))))
   }
 
   /**
@@ -202,12 +202,12 @@ trait GraphBase[S >: Null <: AnyRef] {
       val nPreds  = rpair._2
       if (prevDist == -1.0) {
         val ard = addRdist(nrDists, neighbor, nid, curDist)
-        (ard, nPreds + (neighbor -> (nid, curDist)))
+        (ard, nPreds + (neighbor -> ((nid, curDist))))
         
       } else {
         if (curDist < prevDist) {
           val ard = addRdist(nrDists, neighbor, nid, curDist, prevDist)
-          (ard, nPreds + (neighbor -> (nid, curDist)))
+          (ard, nPreds + (neighbor -> ((nid, curDist))))
         } else {
           rpair
         }
@@ -264,7 +264,7 @@ trait GraphBase[S >: Null <: AnyRef] {
 
     val rdists  = SortedMap(0.0 -> Map(source -> source))
     val minNode = source
-    val preds   = Map(source -> (source, 0.0))
+    val preds   = Map(source -> ((source, 0.0)))
     val dist    = 0.0
     short(net, source, target, neighbors, distance, rdists, minNode, preds, dist)
   }
