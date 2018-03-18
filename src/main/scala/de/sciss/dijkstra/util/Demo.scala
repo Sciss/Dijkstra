@@ -1,9 +1,7 @@
-package org.seaton.dijkstra.util
+package de.sciss.dijkstra
+package util
 
 import java.util.Date
-
-import org.seaton.dijkstra.cases.{ShortestRoute, ShortestRouteDoesNotExist, ShortestRouteError, ShortestRouteInvalidSourceOrTarget}
-import org.seaton.dijkstra.core.GraphBase
 
 import scala.util.control.NonFatal
 

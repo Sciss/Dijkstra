@@ -1,6 +1,5 @@
-import org.seaton.dijkstra.cases._
-import org.seaton.dijkstra.core._
-import org.seaton.dijkstra.util.GraphUtil
+import de.sciss.dijkstra.util.GraphUtil
+import de.sciss.dijkstra.{Edge, Graph, GraphBase, Node, ShortestRoute, ShortestRouteDoesNotExist, ShortestRouteError, ShortestRouteInvalidSourceOrTarget}
 import org.specs2.matcher.ThrownMessages
 import org.specs2.mutable.Specification
 

@@ -1,6 +1,4 @@
-package org.seaton.dijkstra.cases
-
-import org.seaton.dijkstra.core.Graph
+package de.sciss.dijkstra
 
 /**
  * Base GraphCase class

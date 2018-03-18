@@ -1,4 +1,4 @@
-import org.seaton.dijkstra.core._
+import de.sciss.dijkstra.{Edge, Graph, Node}
 import org.specs2.mutable.Specification
 
 class GraphSpec extends Specification {

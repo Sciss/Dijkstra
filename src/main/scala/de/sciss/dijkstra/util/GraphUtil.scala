@@ -1,4 +1,5 @@
-package org.seaton.dijkstra.util
+package de.sciss.dijkstra
+package util
 
 import java.awt.image.BufferedImage
 import java.awt.{Color, Graphics2D}
@@ -7,7 +8,6 @@ import java.lang.Double
 import java.text.SimpleDateFormat
 
 import javax.imageio.ImageIO
-import org.seaton.dijkstra.core._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
