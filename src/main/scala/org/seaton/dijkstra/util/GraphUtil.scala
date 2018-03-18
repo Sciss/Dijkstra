@@ -30,7 +30,7 @@ object GraphUtil {
   /**
    * Delta on spike theta angle.  Used for 'spikes' off polygon graph nodes.
    */
-  private val delta = 0 // scala.math.Pi
+  private val delta = 0 // math.Pi
 
   /**
    * Simple date format (yyyyMMdd.HHmmss) for natural ordering of dates.
@@ -112,8 +112,8 @@ object GraphUtil {
   private def paintImage(g: Graphics2D, x: Int, y: Int, is: InputStream): Unit = {
     try {
       val img = ImageIO.read(is)
-      val x1 = x - (img.getWidth / 2)
-      val y1 = y - (img.getHeight / 2)
+      val x1  = x - (img.getWidth / 2)
+      val y1  = y - (img.getHeight / 2)
       g.drawImage(img, x1, y1, null)
     } catch {
       case NonFatal(e) => e.printStackTrace()
@@ -247,18 +247,12 @@ object GraphUtil {
    *
    * @return Option[(Node, Node)] with spike nodes; otherwise None
    */
-  private def polySpikes(key: String, theta: Double, x: Double, y: Double, spike: Int): Option[(Node[String], Node[String])] = {
-    try {
-      val x1 = spike + (spike * scala.math.cos(theta + delta))
-      val y1 = spike + (spike * scala.math.sin(theta + delta))
-      val na = Node(key + "a", x + x1, y + y1)
-      val nb = Node(key + "b", x - x1, y - y1)
-      Some(na, nb)
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
+  private def polySpikes(key: String, theta: Double, x: Double, y: Double, spike: Int): (Node[String], Node[String]) = {
+    val x1 = spike + (spike * math.cos(theta + delta))
+    val y1 = spike + (spike * math.sin(theta + delta))
+    val na = Node(key + "a", x + x1, y + y1)
+    val nb = Node(key + "b", x - x1, y - y1)
+    (na, nb)
   }
 
   /**
@@ -271,43 +265,34 @@ object GraphUtil {
    * @return Option[GeneratedGraph(Graph)] for success; Option[GraphGeneratedFailed(msg)] otherwise
    *
    */
-  def polygonGraph(slices: Int, radius: Double, spiky: Boolean = true): Option[GraphCase[String]] = {
-    try {
-      val slice = (2 * scala.math.Pi) / (1.0 * slices)
-      val nodes: mutable.HashMap[String, Node[String]] = mutable.HashMap.empty[String, Node[String]]
-      val edges = new ListBuffer[Edge[String]]()
-      (0 until slices) foreach (n => {
-        val theta = slice * n
-        var offset = 0.0
-        if (n == slices - 1) offset = radius * 0.05 // % of radius offset to ensure equi-leg from start 0 goes 0>1>2...>dest route
-        val x = radius + (radius * scala.math.cos(theta)) + (offset * scala.math.cos(theta))
-        val y = radius + (radius * scala.math.sin(theta)) + (offset * scala.math.sin(theta))
-        val key = String.valueOf(n)
-        nodes += (key -> Node(key, x, y))
-        if (spiky) {
-          polySpikes(key, theta, x, y, spike) match {
-            case Some(ntuple) =>
-              val na = ntuple._1
-              val nb = ntuple._2
-              nodes += (na.id -> na)
-              nodes += (nb.id -> nb)
-              edges += Edge(key, na.id)
-              edges += Edge(key, nb.id)
-            case _ => println("No spike nodes for node(" + key + ")")
-          }
-        }
-        if (n > 0) {
-          edges += Edge(String.valueOf(n - 1), key)
-        } else {
-          edges += Edge(String.valueOf(slices - 1), "0")
-        }
-      })
-      Some(GeneratedGraph(Graph(nodes.toMap, edges.toList)))
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        Some(GeneratedGraphFailed(e.getMessage))
-    }
+  def polygonGraph(slices: Int, radius: Double, spiky: Boolean = true): GraphCase[String] = {
+    val slice = (2 * math.Pi) / (1.0 * slices)
+    val nodes: mutable.HashMap[String, Node[String]] = mutable.HashMap.empty[String, Node[String]]
+    val edges = new ListBuffer[Edge[String]]()
+    (0 until slices) foreach (n => {
+      val theta = slice * n
+      var offset = 0.0
+      if (n == slices - 1) offset = radius * 0.05 // % of radius offset to ensure equi-leg from start 0 goes 0>1>2...>dest route
+      val x = radius + (radius * math.cos(theta)) + (offset * math.cos(theta))
+      val y = radius + (radius * math.sin(theta)) + (offset * math.sin(theta))
+      val key = String.valueOf(n)
+      nodes += (key -> Node(key, x, y))
+      if (spiky) {
+        val ntuple = polySpikes(key, theta, x, y, spike)
+        val na = ntuple._1
+        val nb = ntuple._2
+        nodes += (na.id -> na)
+        nodes += (nb.id -> nb)
+        edges += Edge(key, na.id)
+        edges += Edge(key, nb.id)
+      }
+      if (n > 0) {
+        edges += Edge(String.valueOf(n - 1), key)
+      } else {
+        edges += Edge(String.valueOf(slices - 1), "0")
+      }
+    })
+    GeneratedGraph(Graph(nodes.toMap, edges.toList))
   }
 
   /**

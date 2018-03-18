@@ -14,14 +14,8 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
   val triGraph: Graph[String] = Graph(triNodes, goodTriEdges)
 
   val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, spiky = false) match {
-    case Some(graphCase) =>
-      graphCase match {
-        case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
-        case _ => null // anything else is an error
-      }
-    case _ =>
-      println("Polygon graph not generated.")
-      null
+    case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
+    case _ => null // anything else is an error
   }
 
   val wedges = new ListBuffer[Edge[String]]()
@@ -31,40 +25,31 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
   val disjoint5graph: Graph[String] = Graph(poly5graph.nodes, wedges.toList)
 
   val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, spiky = true) match {
-    case Some(graphCase) =>
-      graphCase match {
-        case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
-        case _ => null // anything else is an error
-      }
-    case _ =>
-      println("Polygon graph not generated.")
-      null
+    case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
+    case _ => null // anything else is an error
   }
 
   "functional: graph shortest route should fail with invalid target node id" in {
-    shortestPath(triGraph, "a", "zzz") must beSome(ShortestRouteInvalidSourceOrTarget())
+    shortestPath(triGraph, "a", "zzz") must beEqualTo(ShortestRouteInvalidSourceOrTarget())
   }
 
   "functional: graph shortest route should fail with invalid source node id" in {
-    shortestPath(triGraph, "zzz", "a") must beSome(ShortestRouteInvalidSourceOrTarget())
+    shortestPath(triGraph, "zzz", "a") must beEqualTo(ShortestRouteInvalidSourceOrTarget())
   }
 
   "functional: graph shortest route should fail with invalid source and target node ids" in {
-    shortestPath(triGraph, "yyy", "zzz") must beSome(ShortestRouteInvalidSourceOrTarget())
+    shortestPath(triGraph, "yyy", "zzz") must beEqualTo(ShortestRouteInvalidSourceOrTarget())
   }
 
   "functional: polygon graph 10 sides node 0 to 4 shortest route 0>1>2>3>4" in {
     val shortest: List[String] = {
-      shortestPath(poly10graph, "0", "4") match {
-        case Some(graphCase) =>
-          graphCase match {
-            case shortestRoute : ShortestRoute[String] => shortestRoute.route
-            case ShortestRouteDoesNotExist() => fail("no shortest route")
-            case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
-            case ShortestRouteError() => fail("shortest route error")
-            case _ => fail("error calculating shortest route")
-          }
-        case _ => fail("error calculating shortest route: unknown state")
+      val graphCase = shortestPath(poly10graph, "0", "4")
+      graphCase match {
+        case shortestRoute : ShortestRoute[String]  => shortestRoute.route
+        case ShortestRouteDoesNotExist()            => fail("no shortest route")
+        case ShortestRouteInvalidSourceOrTarget()   => fail("invalid source/target")
+        case ShortestRouteError()                   => fail("shortest route error")
+        case _                                      => fail("error calculating shortest route")
       }
     }
     shortest must beEqualTo(List("0", "1", "2", "3", "4"))
@@ -72,16 +57,13 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
 
   "functional: polygon graph 10 sides node 0 to 6 shortest route 0>9>8>7>6" in {
     val shortest: List[String] = {
-      shortestPath(poly10graph, "0", "6") match {
-        case Some(graphCase) =>
-          graphCase match {
-            case shortestRoute : ShortestRoute[String] => shortestRoute.route
-            case ShortestRouteDoesNotExist() => fail("no shortest route")
-            case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
-            case ShortestRouteError() => fail("shortest route error")
-            case _ => fail("error calculating shortest route")
-          }
-        case _ => fail("error calculating shortest route: unknown state")
+      val graphCase = shortestPath(poly10graph, "0", "6")
+      graphCase match {
+        case shortestRoute : ShortestRoute[String]  => shortestRoute.route
+        case ShortestRouteDoesNotExist()            => fail("no shortest route")
+        case ShortestRouteInvalidSourceOrTarget()   => fail("invalid source/target")
+        case ShortestRouteError()                   => fail("shortest route error")
+        case _                                      => fail("error calculating shortest route")
       }
     }
     shortest must beEqualTo(List("0", "9", "8", "7", "6"))
@@ -89,16 +71,13 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
 
   "functional: polygon graph 10 sides source and target node being '0' should have shortest route of just node '0'" in {
     val shortest: List[String] = {
-      shortestPath(poly10graph, "0", "0") match {
-        case Some(graphCase) =>
-          graphCase match {
-            case shortestRoute : ShortestRoute[String] => shortestRoute.route
-            case ShortestRouteDoesNotExist() => fail("no shortest route")
-            case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
-            case ShortestRouteError() => fail("shortest route error")
-            case _ => fail("error calculating shortest route")
-          }
-        case _ => fail("error calculating shortest route: unknown state")
+      val graphCase = shortestPath(poly10graph, "0", "0")
+      graphCase match {
+        case shortestRoute : ShortestRoute[String] => shortestRoute.route
+        case ShortestRouteDoesNotExist() => fail("no shortest route")
+        case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
+        case ShortestRouteError() => fail("shortest route error")
+        case _ => fail("error calculating shortest route")
       }
     }
     shortest must beEqualTo(List("0"))
@@ -106,23 +85,20 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
 
   "functional: non-connected 5-sided polygon graph (missing edges between 2,3 and 0,4) shortest route between 0,2 = 0>1>2" in {
     val shortest: List[String] = {
-      shortestPath(disjoint5graph, "0", "2") match {
-        case Some(graphCase) =>
-          graphCase match {
-            case shortestRoute : ShortestRoute[String] => shortestRoute.route
-            case ShortestRouteDoesNotExist() => fail("no shortest route")
-            case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
-            case ShortestRouteError() => fail("shortest route error")
-            case _ => fail("error calculating shortest route")
-          }
-        case _ => fail("error calculating shortest route: unknown state")
+      val graphCase = shortestPath(disjoint5graph, "0", "2")
+      graphCase match {
+        case shortestRoute : ShortestRoute[String] => shortestRoute.route
+        case ShortestRouteDoesNotExist() => fail("no shortest route")
+        case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
+        case ShortestRouteError() => fail("shortest route error")
+        case _ => fail("error calculating shortest route")
       }
     }
     shortest must beEqualTo(List("0", "1", "2"))
   }
 
   "functional: non-connected 5-sided polygon graph (missing edges between 2,3 and 0,4) shortest route doesn't exist betwwen 0,3" in {
-    shortestPath(disjoint5graph, "0", "3") must beSome(ShortestRouteDoesNotExist())
+    shortestPath(disjoint5graph, "0", "3") must beEqualTo(ShortestRouteDoesNotExist())
   }
 
 //  "functional: testing all shortest routes 0..(all nodes to n-1) for each polygon graph with 3 to 100 nodes" in {

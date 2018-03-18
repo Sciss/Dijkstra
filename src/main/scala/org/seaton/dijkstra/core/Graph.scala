@@ -7,33 +7,29 @@ import org.seaton.dijkstra.cases._
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.util.control.NonFatal
 
 trait GraphBase[S >: Null <: AnyRef] {
-  val UNDEFINED: S = null
   /**
    * Calculates via folding the distance traversed by a list of connected nodes.
    *
    * @param graph the graph to be traverse
    * @param traversed the list of node ids to be traversed
    *
-   * @return Option[Double] is the distance travelled by traversing the nodes
+   * @return `Option[Double]` is the distance travelled by traversing the nodes
    */
-  def traversedDistance(graph: Graph[S], traversed: List[S]): Option[Double] = {
-    try {
-      var prev: Option[S] = None
-      Some(traversed.foldLeft(0.0)((acc, nid) => prev match {
-        case None =>
-          prev = Some(nid)
-          0.0
-        case Some(pv) =>
-          prev = Some(nid)
-          acc + graph.net(nid)(pv)
-      }))
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
-    }
+  def traversedDistance(graph: Graph[S], traversed: List[S]): Double = {
+
+    var prev: Option[S] = None
+    traversed.foldLeft(0.0)((acc, nid) => prev match {
+      case None =>
+        prev = Some(nid)
+        0.0
+      case Some(pv) =>
+        prev = Some(nid)
+        acc + graph.net(nid)(pv)
+    })
   }
+  
   /**
    * Calculates the shortest path given a graph, source and target nodes, and neighbor and distance functions.
    *
@@ -45,25 +41,19 @@ trait GraphBase[S >: Null <: AnyRef] {
    * @return `Option[List[String]]` traversable list of node ids in graph representing the shortest path
    */
   def shortestPath(net: Map[S, Map[S, Double]], source: S, target: S,
-    neighbors: ((Map[S, Map[S, Double]], S) => Option[List[S]]) = neighbors,
-    distance: ((Map[S, Map[S, Double]], S, S) => Option[Double]) = distance): Option[GraphCase[S]] = {
-    try {
-      if (source.equals(target)) {
-        Some(ShortestRoute(List(target), 0.0))
-      } else if (!net.contains(source) || !net.contains(target)) {
-        Some(ShortestRouteInvalidSourceOrTarget())
-      } else {
-        dijkstra(net, source, target, neighbors, distance) match {
-          case Some(preds) =>
-            buildPath(preds, source, target) match {
-              case Some(p) => Some(ShortestRoute(p, preds(target)._2))
-              case _ => Some(ShortestRouteDoesNotExist())
-            }
-          case _ => println("shortest route failed"); Some(ShortestRouteError())
-        }
+    neighbors: ((Map[S, Map[S, Double]], S) => List[S]) = neighbors,
+    distance : ((Map[S, Map[S, Double]], S, S) => Option[Double]) = distance): GraphCase[S] = {
+
+    if (source.equals(target)) {
+      ShortestRoute(List(target), 0.0)
+    } else if (!net.contains(source) || !net.contains(target)) {
+      ShortestRouteInvalidSourceOrTarget()
+    } else {
+      val preds = dijkstra(net, source, target, neighbors, distance)
+      buildPath(preds, source, target) match {
+        case Some(p)  => ShortestRoute(p, preds(target)._2)
+        case _        => ShortestRouteDoesNotExist()
       }
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
     }
   }
 
@@ -76,55 +66,40 @@ trait GraphBase[S >: Null <: AnyRef] {
    *
    * @return `Option[List[String]]` traversable list of node ids in graph representing the shortest path
    */
-  def shortestPath(graph: Graph[S], source: S, target: S): Option[GraphCase[S]] =
+  def shortestPath(graph: Graph[S], source: S, target: S): GraphCase[S] =
     shortestPath(graph.net, source, target)
 
   /**
    * First-order function to determine connected nodes to given node in graph.
    */
-  val neighbors: (Map[S, Map[S, Double]], S) => Option[List[S]] = { (net, nid) =>
-    try {
-      Some(for (nbr <- net(nid).toList) yield nbr._1)
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
+  val neighbors: (Map[S, Map[S, Double]], S) => List[S] = { (net, nid) =>
+    for (nbr <- net(nid).toList) yield nbr._1
   }
 
   /**
    * First-order function to determine distance between nodes with (x,y) coordinates.
    */
   val distance: (Map[S, Map[S, Double]], S, S) => Option[Double] = { (net, source, target) =>
-    try {
-      net(source).get(target)
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
+    net(source).get(target)
   }
 
   /**
    * Determines minimum distance node.
    *
-   * @param rdists sorted map with distance as key and edges with those distances
-   * @param preds map with node ids pointing to previous distances to other nodes
+   * @param rdists  sorted map with distance as key and edges with those distances
+   * @param preds   map with node ids pointing to previous distances to other nodes
    *
    * @return Tuple(minimum distance node id, minimum distance, updated relative distances, update previous distances)
    */
   private def takeMinNode(rdists: SortedMap[Double, Map[S, S]],
-                          preds: Map[S, (S, Double)]): Option[(S, Double, SortedMap[Double, Map[S, S]], Map[S, (S, Double)])] = {
-    try {
-      val dist        = rdists.firstKey
-      val minNodes    = rdists(dist)
-      val minNode     = minNodes.head._1
-      val prevNid     = minNodes.head._2
-      val otherNodes  = minNodes.tail
-      Some((minNode, dist, if (otherNodes.isEmpty) rdists - dist else rdists + (dist -> otherNodes), preds + (minNode -> (prevNid, dist))))
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
-    }
+                          preds: Map[S, (S, Double)]): (S, Double, SortedMap[Double, Map[S, S]], Map[S, (S, Double)]) = {
+
+    val dist        = rdists.firstKey
+    val minNodes    = rdists(dist)
+    val minNode     = minNodes.head._1
+    val prevNid     = minNodes.head._2
+    val otherNodes  = minNodes.tail
+    (minNode, dist, if (otherNodes.isEmpty) rdists - dist else rdists + (dist -> otherNodes), preds + (minNode -> (prevNid, dist)))
   }
 
   /**
@@ -139,57 +114,47 @@ trait GraphBase[S >: Null <: AnyRef] {
    * @return `Option[]` with updated relative distance sorted map
    */
   private def addRdist(rdists: SortedMap[Double, Map[S, S]], nid: S, prevNid: S,
-    dist: Double, prevDist: Double = -1.0): Option[SortedMap[Double, Map[S, S]]] = {
-    try {
-      if (prevDist < 0) {
-        rdists.get(dist) match {
-          case Some(nodes) => Some(rdists + (dist -> (nodes + (nid -> prevNid))))
-          case _ => Some(rdists + (dist -> Map(nid -> prevNid)))
-        }
-      } else {
-        addRdist(rdists, nid, prevNid, dist) match {
-          case Some(nrdists) =>
-            val minnodes = rdists(prevDist)
-            val nminnodes = minnodes - nid
-            if (nminnodes.isEmpty) {
-              Some(nrdists - prevDist)
-            } else {
-              Some(nrdists + (dist -> Map(nid -> prevNid)))
-            }
-          case _ => println("inside addRdist: failed to return addRdist"); None
-        }
+    dist: Double, prevDist: Double = -1.0): SortedMap[Double, Map[S, S]] = {
+
+    if (prevDist < 0) {
+      rdists.get(dist) match {
+        case Some(nodes)  => rdists + (dist -> (nodes + (nid -> prevNid)))
+        case _            => rdists + (dist -> Map(nid -> prevNid))
       }
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
+    } else {
+      val nrdists     = addRdist(rdists, nid, prevNid, dist)
+      val minnodes  = rdists(prevDist)
+      val nminnodes = minnodes - nid
+      if (nminnodes.isEmpty) {
+        nrdists - prevDist
+      } else {
+        nrdists + (dist -> Map(nid -> prevNid))
+      }
     }
   }
 
   /**
    * Recursive function to build path from distance and previous node/distance maps.
    *
-   * @param pdist tuple with node id and distance
-   * @param preds map with node id as key and tuple of connected node id and distance
-   * @param source source node id
-   * @param path list of node ids
+   * @param pdist   tuple with node id and distance
+   * @param preds   map with node id as key and tuple of connected node id and distance
+   * @param source  source node id
+   * @param path    list of node ids
    *
    * @return `Option[List[String]]` with shortest (least cost) path node ids
    */
   private def buildPathRecur(pdist: (S, Double), preds: Map[S, (S, Double)], source: S, path: List[S]): Option[List[S]] = {
-    try {
-      val pred = pdist._1
-      if (pred == null) {
-        None
-      } else {
-        if (pred.equals(source)) {
-          Some(source :: path)
-        } else {
-          buildPathRecur(preds(pred), preds, source, pred :: path)
-        }
+    val pred = pdist._1
+    if (pred.equals(source)) {
+      Some(source :: path)
+    } else {
+      preds.get(pred) match {
+        case Some(tup)  => buildPathRecur(tup, preds, source, pred :: path)
+        case None       => None
       }
-    } catch {
-      case NonFatal(_) => None
     }
   }
+
   /**
    * Initialization build path function to calls the recursive build path function to build path from distance and previous node/distance maps.
    *
@@ -199,13 +164,9 @@ trait GraphBase[S >: Null <: AnyRef] {
    *
    * @return `Option[List[String]]` with shortest (least cost) path node ids
    */
-  private def buildPath(preds: Map[S, (S, Double)], source: S, target: S): Option[List[S]] = {
-    try {
-      buildPathRecur(preds(target), preds, source, List(target))
-    } catch {
-      case NonFatal(_) => None
-    }
-  }  
+  private def buildPath(preds: Map[S, (S, Double)], source: S, target: S): Option[List[S]] =
+    preds.get(target).flatMap(tup => buildPathRecur(tup, preds, source, List(target)))
+  
   /**
    * Updates the relative distances between nodes.
    *
@@ -219,55 +180,40 @@ trait GraphBase[S >: Null <: AnyRef] {
    * @return Option[] with updated relative distances and previous distances.
    */
   private def updateRdists(rdists: SortedMap[Double, Map[S, S]],
-    preds: Map[S, (S, Double)],
-    net: Map[S, Map[S, Double]],
-    nid: S,
-    dist: Double,
-    neighbors: ((Map[S, Map[S, Double]], S) => Option[List[S]]),
-    distance: ((Map[S, Map[S, Double]], S, S) => Option[Double])): Option[(SortedMap[Double, Map[S, S]], Map[S, (S, Double)])] = {
-    try {
-      neighbors(net, nid) match {
-        case Some(chds) =>
-          chds.foldLeft(Option((rdists, preds))) { (orpair, neighbor) =>
-            val rpair = orpair match {
-              case Some(rp) => rp
-              case _        => null // should never be there
-            }
-            val curDist: Double = distance(net, nid, neighbor) match {
-              case Some(db) => db + dist
-              case _        => -1.0
-            }
+      preds     : Map[S, (S, Double)],
+      net       : Map[S, Map[S, Double]],
+      nid       : S,
+      dist      : Double,
+      neighbors : ((Map[S, Map[S, Double]], S) => List[S]),
+      distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double])): (SortedMap[Double, Map[S, S]], Map[S, (S, Double)]) = {
 
-            val prevDist: Double = preds.get(neighbor) match {
-              case Some(ppair) => ppair._2.asInstanceOf[Double]
-              case _ => -1.0
-            }
-            val nrDists = rpair._1
-            val nPreds = rpair._2
-            if (prevDist == -1.0) {
-              addRdist(nrDists, neighbor, nid, curDist) match {
-                case Some(ard) => Some((ard, nPreds + (neighbor -> (nid, curDist))))
-                case _ => println("failed to add r dist: "); orpair
-              }
-
-            } else {
-              if (curDist < prevDist) {
-                addRdist(nrDists, neighbor, nid, curDist, prevDist) match {
-                  case Some(ard) => Some((ard, nPreds + (neighbor -> (nid, curDist))))
-                  case _ => println("failed to add r dist: "); orpair
-                }
-              } else {
-                orpair
-              }
-            }
-          }
-        case _ => Some((rdists, preds)) // no neighbor for node
+    val chds = neighbors(net, nid)
+    chds.foldLeft((rdists, preds)) { (rpair, neighbor) =>
+      val curDist: Double = distance(net, nid, neighbor) match {
+        case Some(db) => db + dist
+        case _        => -1.0
       }
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
+
+      val prevDist: Double = preds.get(neighbor) match {
+        case Some(ppair) => ppair._2.asInstanceOf[Double]
+        case _ => -1.0
+      }
+      val nrDists = rpair._1
+      val nPreds  = rpair._2
+      if (prevDist == -1.0) {
+        val ard = addRdist(nrDists, neighbor, nid, curDist)
+        (ard, nPreds + (neighbor -> (nid, curDist)))
+        
+      } else {
+        if (curDist < prevDist) {
+          val ard = addRdist(nrDists, neighbor, nid, curDist, prevDist)
+          (ard, nPreds + (neighbor -> (nid, curDist)))
+        } else {
+          rpair
+        }
+      }
     }
   }
-
 
   /**
    * Recursively calculates the shortest route from root to destination node.
@@ -285,29 +231,19 @@ trait GraphBase[S >: Null <: AnyRef] {
    * @return `Option[]` update previous distances
    */
   private def short(net: Map[S, Map[S, Double]], source: S, target: S,
-      neighbors : ((Map[S, Map[S, Double]], S)    => Option[List[S]]),
+      neighbors : ((Map[S, Map[S, Double]], S)    => List[S]),
       distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double]),
       rdists    : SortedMap[Double, Map[S, S]],
       minNode   : S,
       preds     : Map[S, (S, Double)],
-      dist      : Double): Option[Map[S, (S, Double)]] = {
-    try {
-      if (rdists.isEmpty) {
-        Some(preds)
-      } else {
-        takeMinNode(rdists, preds) match {
-          case Some(take) =>
-            updateRdists(take._3, take._4, net, take._1, take._2, neighbors, distance) match {
-              case Some(update) => short(net, source, target, neighbors, distance, update._1, take._1, update._2, take._2)
-              case _ =>
-                throw new RuntimeException("error updated rel distances: " + take._3 + ":" + take._4 + ":" + net + ":" + take._1 + ":" + take._2)
-            }
-          case _ =>
-            throw new RuntimeException("error generating takeMinNode: " + rdists + ":" + preds)
-        }
-      }
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
+      dist      : Double): Map[S, (S, Double)] = {
+
+    if (rdists.isEmpty) {
+      preds
+    } else {
+      val take    = takeMinNode(rdists, preds)
+      val update  = updateRdists(take._3, take._4, net, take._1, take._2, neighbors, distance)
+      short(net, source, target, neighbors, distance, update._1, take._1, update._2, take._2)
     }
   }
 
@@ -323,19 +259,15 @@ trait GraphBase[S >: Null <: AnyRef] {
    * @return map with node id as key and relative distances to each connected node
    */
   private def dijkstra(net: Map[S, Map[S, Double]], source: S, target: S,
-    neighbors: ((Map[S, Map[S, Double]], S) => Option[List[S]]),
-    distance: ((Map[S, Map[S, Double]], S, S) => Option[Double])): Option[Map[S, (S, Double)]] = {
-    try {
-      val rdists = SortedMap(0.0 -> Map(source -> source))
-      val minNode = source
-      val preds = Map(source -> (source, 0.0))
-      val dist = 0.0
-      short(net, source, target, neighbors, distance, rdists, minNode, preds, dist)
-    } catch {
-      case NonFatal(e) => e.printStackTrace(); None
-    }
-  }
+      neighbors : ((Map[S, Map[S, Double]], S)    => List[S]),
+      distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double])): Map[S, (S, Double)] = {
 
+    val rdists  = SortedMap(0.0 -> Map(source -> source))
+    val minNode = source
+    val preds   = Map(source -> (source, 0.0))
+    val dist    = 0.0
+    short(net, source, target, neighbors, distance, rdists, minNode, preds, dist)
+  }
 }
 
 /**
@@ -361,15 +293,11 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
     val ndist = new mutable.HashMap[S, Map[S, Double]]()
     nodes foreach (node => {
       val n2n = new mutable.HashMap[S, Double]()
-      neighborsOf(node._1) match {
-        case Some(_neighbors) => _neighbors foreach (nid => {
-          distanceBetween(node._1, nid) match {
-            case Some(dist) => n2n += nid -> dist
-            case _ => // no distance was calculated between nodes
-          }
-        })
-        case _ => // no neighbors mean unconnected node
-      }
+      val _neighbors = neighborsOf(node._1)
+      _neighbors foreach (nid => {
+        val dist = distanceBetween(node._1, nid)
+        n2n += nid -> dist
+      })
       ndist += node._1 -> n2n.toMap
     })
     ndist.toMap
@@ -382,15 +310,8 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    *
    * @return `Option[List[String]]` list of neighbor node ids
    */
-  private def neighbors(nid: S): Option[List[S]] = {
-    try {
-      Some(for (nbr <- net(nid).toList) yield nbr._1)
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
-  }
+  private def neighbors(nid: S): List[S] =
+    for (nbr <- net(nid).toList) yield nbr._1
 
   /**
    * Pulls the distances between nodes from graph as nodes and distances structure.
@@ -400,15 +321,8 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    *
    * @return Option[Double] distance between src and dst nodes
    */
-  private def distances(src: S, dest: S): Option[Double] = {
-    try {
-      net(src).get(dest)
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
-  }
+  private def distances(src: S, dest: S): Option[Double] =
+    net(src).get(dest)
 
   /**
    * Determines the minimum distance node id.
@@ -418,23 +332,17 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    * @return node id of the node with least distance
    */
   private def minDistanceId(dist: mutable.HashMap[S, Double], work: ListBuffer[S]): Option[S] = {
-    try {
-      var min: Double = Graph.INFINITE
-      var mid: Option[S] = None
-      dist foreach (d => {
-        if (work.contains(d._1)) {
-          if (d._2 < min) {
-            min = d._2
-            mid = Some(d._1)
-          }
+    var min: Double = Graph.INFINITE
+    var mid: Option[S] = None
+    dist foreach (d => {
+      if (work.contains(d._1)) {
+        if (d._2 < min) {
+          min = d._2
+          mid = Some(d._1)
         }
-      })
-      mid
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
+      }
+    })
+    mid
   }
 
   /**
@@ -444,15 +352,8 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    *
    * @return `Option[List[String]]` list of node ids of neighboring nodes (connected by edge)
    */
-  private def neighborsOf(nid: S): Option[List[S]] = {
-    try {
-      Some(for (e <- edges; if e.nodeA.equals(nid) || e.nodeB.equals(nid)) yield if (e.nodeA.equals(nid)) e.nodeB else e.nodeA)
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
-  }
+  private def neighborsOf(nid: S): List[S] =
+    for (e <- edges; if e.nodeA.equals(nid) || e.nodeB.equals(nid)) yield if (e.nodeA.equals(nid)) e.nodeB else e.nodeA
 
   /**
    * Calculates the Cartesian distance between two (2) nodes (x,y).
@@ -462,15 +363,8 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    *
    * @return Option[Double] distance (Cartesian) between first and second node
    */
-  private def distanceBetween(aid: S, bid: S): Option[Double] = {
-    try {
-      Some(scala.math.sqrt(scala.math.pow(nodes(aid).x - nodes(bid).x, 2) + scala.math.pow(nodes(aid).y - nodes(bid).y, 2)))
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        None
-    }
-  }
+  private def distanceBetween(aid: S, bid: S): Double =
+    math.sqrt(math.pow(nodes(aid).x - nodes(bid).x, 2) + math.pow(nodes(aid).y - nodes(bid).y, 2))
 
   /**
    * Calculates the shortest route (if any) between two (2) nodes in this graph.
@@ -480,83 +374,66 @@ class Graph[S >: Null <: AnyRef](val nodes: Map[S, Node[S]], val edges: List[Edg
    *
    * @return Option[ShortestRoute(List[Node])] for success, other graph cases for failed calculation
    */
-  def shortestPath(source: S, target: S): Option[GraphCase[S]] = {
-    try {
-      if (source == target) {
-        Some(ShortestRoute(List(source), 0.0))
-      } else if (!nodes.contains(source) || !nodes.contains(target)) {
-        Some(ShortestRouteInvalidSourceOrTarget())
-      } else {
-        val distance = mutable.HashMap.empty[S, Double]
-        val previous = mutable.HashMap.empty[S, S]
-        val working = ListBuffer[S]()
-        nodes foreach (kv => {
-          distance += (kv._1 -> Graph.INFINITE)
-          previous += (kv._1 -> null)
-          working += kv._1
-        })
-        distance += (source -> 0.0)
-        var errMsg: String = null
-        var closest: S = null
-        while (working.nonEmpty) {
-          minDistanceId(distance, working) match {
-            case Some(mid) =>
-              closest = mid
-              if (distance(closest) == Graph.INFINITE) {
-                println("no other nodes are accessible")
-                closest = null
-                working.clear()
-              } else {
-                working -= closest
-                neighbors(closest) match {
-                  case Some(neighbrs) =>
-                    neighbrs foreach (neighbor => {
-                      distances(closest, neighbor) match {
-                        case Some(dist) =>
-                          val alternate = distance(closest) + dist
-                          if (alternate < distance(neighbor)) {
-                            distance(neighbor) = alternate
-                            previous(neighbor) = closest
-                          }
-                        case _ => println("""distance calc failed for edge %s and %s""".format(closest, neighbor))
-                      }
-                    })
-                  case _ =>
-                    errMsg = """Error determining neighbors for %s""".format(closest)
-                    working.clear()
-                }
-              }
-            case _ => working.clear() // no more connected nodes to source
-          }
-        }
-        if ((closest == null) || (distance(closest) == Graph.INFINITE)) {
-          Some(ShortestRouteDoesNotExist())
-        } else if (errMsg != null) {
-          Some(ShortestRouteError())
-        } else {
-          val route = ListBuffer[S]()
-          var location = target
-          while (previous(location) != null) {
-            route.insert(0, nodes(previous(location)).id)
-            location = previous(location)
-          }
-          if (route.isEmpty) {
-            Some(ShortestRouteDoesNotExist())
-          } else {
-            route += target
-            val tdist = traversedDistance(this, route.toList) match {
-              case Some(d) => d
-              case _ => -999.999
-            }
+  def shortestPath(source: S, target: S): GraphCase[S] = {
+    if (source == target) {
+      ShortestRoute(List(source), 0.0)
+    } else if (!nodes.contains(source) || !nodes.contains(target)) {
+      ShortestRouteInvalidSourceOrTarget()
+    } else {
+      val distance = mutable.HashMap.empty[S, Double]
+      val previous = mutable.HashMap.empty[S, S]
+      val working = ListBuffer[S]()
+      nodes foreach (kv => {
+        distance += (kv._1 -> Graph.INFINITE)
+        previous -= kv._1
+        working  += kv._1
+      })
+      distance += (source -> 0.0)
 
-            Some(ShortestRoute(route.toList, tdist))
-          }
+      var closest = Option.empty[S]
+      while (working.nonEmpty) {
+        minDistanceId(distance, working) match {
+          case midS @ Some(mid) =>
+            closest = midS
+            if (distance(mid) == Graph.INFINITE) {
+              println("no other nodes are accessible")
+              closest = None
+              working.clear()
+            } else {
+              working -= mid
+              val neighbrs = neighbors(mid)
+              neighbrs foreach (neighbor => {
+                distances(mid, neighbor) match {
+                  case Some(dist) =>
+                    val alternate = distance(mid) + dist
+                    if (alternate < distance(neighbor)) {
+                      distance(neighbor) = alternate
+                      previous(neighbor) = mid
+                    }
+                  case _ => println("""distance calc failed for edge %s and %s""".format(closest, neighbor))
+                }
+              })
+            }
+          case _ => working.clear() // no more connected nodes to source
         }
       }
-    } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        Some(ShortestRouteError()) // e.getMessage))
+      if (closest.forall(distance(_) == Graph.INFINITE)) {
+        ShortestRouteDoesNotExist()
+      } else {
+        val route = ListBuffer[S]()
+        var location = target
+        while (previous.contains(location)) {
+          route.insert(0, nodes(previous(location)).id)
+          location = previous(location)
+        }
+        if (route.isEmpty) {
+          ShortestRouteDoesNotExist()
+        } else {
+          route += target
+          val tdist = traversedDistance(this, route.toList)
+          ShortestRoute(route.toList, tdist)
+        }
+      }
     }
   }
 
@@ -605,12 +482,4 @@ object Graph {
    * Represents an infinite distance while calculating distances between nodes.
    */
   val INFINITE: Double = Double.MaxValue
-
-  /**
-   * Represents an undefined or uninitialized state.
-   */
-  //val UNDEFINED: S = _ //"***undef***"
-
-
-
 }
