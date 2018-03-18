@@ -1,6 +1,11 @@
 # Dijkstra's Algorithm
 
+[![Build Status](https://travis-ci.org/Sciss/Dijkstra.svg?branch=master)](https://travis-ci.org/Sciss/Dijkstra)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/dijkstra_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/dijkstra_2.11)
+
 Implementation of Dijkstra's algorithm to find the shortest (least costly) route between nodes in an undirected graph.
+Fork from [github.com/bepcyc/dijkstra](https://github.com/bepcyc/dijkstra), clean it up a bit and bringing Scala versions up to date.
+Below is the original read-me.
 
 ## Getting Started
 

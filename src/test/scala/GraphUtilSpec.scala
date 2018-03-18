@@ -1,10 +1,5 @@
-import java.lang.String
-import org.seaton.dijkstra.core.Graph
-import org.seaton.dijkstra.util.GraphUtil
-import org.seaton.dijkstra.cases._
-import generate.{GeneratedGraphFailed, GeneratedGraph}
-import org.specs2.mutable.Specification
 import org.specs2.matcher.ThrownMessages
+import org.specs2.mutable.Specification
 
 class GraphUtilSpec extends Specification with ThrownMessages {
 

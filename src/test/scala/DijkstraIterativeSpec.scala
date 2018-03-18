@@ -1,20 +1,19 @@
-import collection.mutable.ListBuffer
+import org.seaton.dijkstra.cases._
 import org.seaton.dijkstra.core._
 import org.seaton.dijkstra.util.GraphUtil
-import org.seaton.dijkstra.cases._
-import generate.{GeneratedGraphFailed, GeneratedGraph}
-import route._
-import org.specs2.mutable.Specification
 import org.specs2.matcher.ThrownMessages
+import org.specs2.mutable.Specification
+
+import scala.collection.mutable.ListBuffer
 
 class DijkstraIterativeSpec extends Specification with ThrownMessages {
 
 	val triNodes = Map("a" -> Node("a", 0.0, 0.0), "b" -> Node("b", 100.0, 100.0), "c" -> Node("c", 100.0, 0.0))
 	val goodTriEdges = List(Edge[String]("a", "b"), Edge[String]("b", "c"), Edge[String]("c", "a"))
 
-	val triGraph = Graph[String](triNodes, goodTriEdges)
+	val triGraph: Graph[String] = Graph(triNodes, goodTriEdges)
 
-	val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, false) match {
+	val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, spiky = false) match {
 		case Some(graphCase) =>
 			graphCase match {
 				case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
@@ -31,7 +30,7 @@ class DijkstraIterativeSpec extends Specification with ThrownMessages {
 	})
 	val disjoint5graph = Graph[String](poly5graph.nodes, wedges.toList)
 
-	val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, true) match {
+	val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, spiky = true) match {
 		case Some(graphCase) =>
 			graphCase match {
 				case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
@@ -93,11 +92,11 @@ class DijkstraIterativeSpec extends Specification with ThrownMessages {
 			poly10graph.shortestPath("0", "0") match {
 				case Some(graphCase) =>
 					graphCase match {
-						case shortestRoute : ShortestRoute[String] => shortestRoute.route
-						case ShortestRouteDoesNotExist() => fail("no shortest route")
-						case ShortestRouteInvalidSourceOrTarget() => fail("invalid source/target")
-						case ShortestRouteError() => fail("shortest route error")
-						case _ => fail("error calculating shortest route")
+						case shortestRoute : ShortestRoute[String] 	=> shortestRoute.route
+						case ShortestRouteDoesNotExist() 						=> fail("no shortest route")
+						case ShortestRouteInvalidSourceOrTarget() 	=> fail("invalid source/target")
+						case ShortestRouteError() 									=> fail("shortest route error")
+						case _ 																			=> fail("error calculating shortest route")
 					}
 				case _ => fail("error calculating shortest route: unknown state")
 			}

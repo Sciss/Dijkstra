@@ -1,21 +1,19 @@
-import collection.mutable.ListBuffer
+import org.seaton.dijkstra.cases._
 import org.seaton.dijkstra.core._
 import org.seaton.dijkstra.util.GraphUtil
-import org.seaton.dijkstra.cases._
-import generate.{ GeneratedGraphFailed, GeneratedGraph }
-import route._
-import org.specs2.mutable.Specification
-import org.specs2.execute.Failure
 import org.specs2.matcher.ThrownMessages
+import org.specs2.mutable.Specification
+
+import scala.collection.mutable.ListBuffer
 
 class DijkstraFunctionalSpec extends Specification with ThrownMessages with GraphBase[String] {
 
   val triNodes = Map("a" -> Node("a", 0.0, 0.0), "b" -> Node("b", 100.0, 100.0), "c" -> Node("c", 100.0, 0.0))
   val goodTriEdges = List(Edge[String]("a", "b"), Edge[String]("b", "c"), Edge[String]("c", "a"))
 
-  val triGraph = Graph[String](triNodes, goodTriEdges)
+  val triGraph: Graph[String] = Graph(triNodes, goodTriEdges)
 
-  val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, false) match {
+  val poly5graph: Graph[String] = GraphUtil.polygonGraph(5, 100.0, spiky = false) match {
     case Some(graphCase) =>
       graphCase match {
         case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
@@ -30,9 +28,9 @@ class DijkstraFunctionalSpec extends Specification with ThrownMessages with Grap
   poly5graph.edges foreach (edge => {
     if (!GraphUtil.isEdge(edge, "0", "4") && !GraphUtil.isEdge(edge, "2", "3")) wedges += edge
   })
-  val disjoint5graph = Graph[String](poly5graph.nodes, wedges.toList)
+  val disjoint5graph: Graph[String] = Graph(poly5graph.nodes, wedges.toList)
 
-  val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, true) match {
+  val poly10graph: Graph[String] = GraphUtil.polygonGraph(10, 100.0, spiky = true) match {
     case Some(graphCase) =>
       graphCase match {
         case generatedGraph : GeneratedGraph[String] => generatedGraph.graph
