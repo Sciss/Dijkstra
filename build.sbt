@@ -1,6 +1,6 @@
 name               := "Dijkstra"
 organization       := "de.sciss"
-version            := "0.1.1-SNAPSHOT"
+version            := "0.1.1"
 scalaVersion       := "2.12.7"
 crossScalaVersions := Seq("2.12.7", "2.11.12")
 licenses           := Seq("Apache License 2.0" -> url("https://git.iem.at/sciss/Dijkstra/blob/master/LICENSE.md"))
@@ -8,7 +8,7 @@ homepage           := Some(url(s"https://git.iem.at/sciss/${name.value}"))
 description        := "Dijkstra's algorithm for calculating shortest (least costly) route in a graph"
 scalacOptions     ++= Seq("-Xlint", "-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Yrangepos")
 
-libraryDependencies += "org.specs2" %% "specs2-core" % "4.0.3" % Test
+libraryDependencies += "org.specs2" %% "specs2-core" % "4.3.5" % Test
 
 // ---- publishing ----
 

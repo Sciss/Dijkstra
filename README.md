@@ -16,8 +16,20 @@ The library has two limitations:
 - graph is assumed to be undirected
 
 A quick hack around this limitation is to extend the `Graph` class and override `lazy val net`. That way the
-problematic private methods `neighborsOf` and `distanceBetween` are not used. A future version of the library
-will remove these assumptions.
+problematic private methods `neighborsOf` and `distanceBetween` are not used. See `DirectedGraphSpec` for an example.
+A future version of the library will remove these assumptions. 
+
+## building
+
+This project builds with sbt against Scala 2.12, 2.11.
+
+## linking
+
+To use this project as a library, use the following artifact:
+
+    libraryDependencies ++= "de.sciss" %% "dijkstra" % v
+
+The current version `v` is `"0.1.1"`
 
 ---------
 

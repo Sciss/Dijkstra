@@ -22,7 +22,7 @@ trait GraphBase[S] {
         0.0
       case Some(pv) =>
         prev = Some(nid)
-        acc + graph.net(nid)(pv)
+        acc + graph.net(pv)(nid) // not: (nid)(pv) which only works for undirected paths
     })
   }
 
@@ -36,8 +36,8 @@ trait GraphBase[S] {
     * @return traversable list of node ids in graph representing the shortest path
     */
   def shortestPath(net: Map[S, Map[S, Double]], source: S, target: S,
-    neighbors: ((Map[S, Map[S, Double]], S)    => List[S])        = this.neighbors,
-    distance : ((Map[S, Map[S, Double]], S, S) => Option[Double]) = this.distance): GraphCase[S] = {
+    neighbors: (Map[S, Map[S, Double]], S)    => List[S]        = this.neighbors,
+    distance : (Map[S, Map[S, Double]], S, S) => Option[Double] = this.distance): GraphCase[S] = {
 
     if (source == target) {
       ShortestRoute(List(target), 0.0)
@@ -177,8 +177,8 @@ trait GraphBase[S] {
       net       : Map[S, Map[S, Double]],
       nid       : S,
       dist      : Double,
-      neighbors : ((Map[S, Map[S, Double]], S) => List[S]),
-      distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double])): (SortedMap[Double, Map[S, S]], Map[S, (S, Double)]) = {
+      neighbors : (Map[S, Map[S, Double]], S) => List[S],
+      distance  : (Map[S, Map[S, Double]], S, S) => Option[Double]): (SortedMap[Double, Map[S, S]], Map[S, (S, Double)]) = {
 
     val chds = neighbors(net, nid)
     chds.foldLeft((rDistances, predMap)) { (rPair, neighbor) =>
@@ -223,8 +223,8 @@ trait GraphBase[S] {
     * @return updated previous distances
     */
   private def short(net: Map[S, Map[S, Double]], source: S, target: S,
-      neighbors : ((Map[S, Map[S, Double]], S)    => List[S]),
-      distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double]),
+      neighbors : (Map[S, Map[S, Double]], S)    => List[S],
+      distance  : (Map[S, Map[S, Double]], S, S) => Option[Double],
       rDistances: SortedMap[Double, Map[S, S]],
       minNode   : S,
       predMap   : Map[S, (S, Double)],
@@ -250,8 +250,8 @@ trait GraphBase[S] {
     * @return map with node id as key and relative distances to each connected node
     */
   private def dijkstra(netMap: Map[S, Map[S, Double]], source: S, target: S,
-      neighbors : ((Map[S, Map[S, Double]], S)    => List[S]),
-      distance  : ((Map[S, Map[S, Double]], S, S) => Option[Double])): Map[S, (S, Double)] = {
+      neighbors : (Map[S, Map[S, Double]], S)    => List[S],
+      distance  : (Map[S, Map[S, Double]], S, S) => Option[Double]): Map[S, (S, Double)] = {
 
     val rDistances  = SortedMap(0.0 -> Map(source -> source))
     val minNode     = source
