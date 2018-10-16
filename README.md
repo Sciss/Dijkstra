@@ -29,7 +29,7 @@ To use this project as a library, use the following artifact:
 
     libraryDependencies ++= "de.sciss" %% "dijkstra" % v
 
-The current version `v` is `"0.1.1"`
+The current version `v` is `"0.1.2"`
 
 ---------
 

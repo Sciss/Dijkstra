@@ -1,6 +1,6 @@
 name               := "Dijkstra"
 organization       := "de.sciss"
-version            := "0.1.1"
+version            := "0.1.2-SNAPSHOT"
 scalaVersion       := "2.12.7"
 crossScalaVersions := Seq("2.12.7", "2.11.12")
 licenses           := Seq("Apache License 2.0" -> url("https://git.iem.at/sciss/Dijkstra/blob/master/LICENSE.md"))
