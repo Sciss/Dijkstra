@@ -8,6 +8,19 @@ Fork from [github.com/bepcyc/dijkstra](https://github.com/bepcyc/dijkstra), clea
 The original author is Greg Seaton. All changes (C)opyright by Hanns Holger Rutz, published under the
 same license (Apache 2.0). Below is the original read-me.
 
+### Hacking the graph class
+
+The library has two limitations:
+
+- nodes must have 2 dimensional coordinates, and weights are automatically derived from the Euclidean distance
+- graph is assumed to be undirected
+
+A quick hack around this limitation is to extend the `Graph` class and override `lazy val net`. That way the
+problematic private methods `neighborsOf` and `distanceBetween` are not used. A future version of the library
+will remove these assumptions.
+
+---------
+
 ## Getting Started
 
 * Retrieve project:
